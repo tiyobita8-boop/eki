@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>三枚コイン占い＋年号変換</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f5f5ff; }
+    h1 { font-size: 1.5em; }
+    .section { margin-bottom: 2em; }
+    input, button { font-size: 1em; padding: 0.5em; }
+    .output { margin-top: 1em; padding: 1em; background: #eef; border-radius: 8px; }
+    a.link { display: inline-block; margin-top: 1em; color: #0077cc; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>三枚コイン占い ＋ 年号変換</h1>
+
+  <div class="section">
+    <h2>🪙 三枚コイン占い</h2>
+    <p>コインを6回投げて、易の卦を作ります。</p>
+    <button onclick="throwCoins()">コインを6回振る</button>
+    <div class="output" id="coinResult"></div>
+    <a class="link" href="https://ekikyo.net/64ka/" target="_blank">64卦の解説はこちら（易経ネット）</a>
+  </div>
+
+  <div class="section">
+    <h2>📅 年号変換</h2>
+    <label>和暦を入力（例: 昭和45年）</label><br>
+    <input id="warekiInput" type="text" placeholder="例: 昭和45年" oninput="convertToSeireki()">
+    <br>
+    <label>西暦を入力（例: 1970）</label><br>
+    <input id="seirekiInput" type="number" placeholder="例: 1970" oninput="convertToWareki()">
+    <div class="output" id="yearResult"></div>
+  </div>
+
+  <script>
+    // 年号変換
+    const eras = [
+      { name: '令和', start: 2019 },
+      { name: '平成', start: 1989 },
+      { name: '昭和', start: 1926 },
+      { name: '大正', start: 1912 },
+      { name: '明治', start: 1868 }
+    ];
+
+    function convertToSeireki() {
+      const input = document.getElementById('warekiInput').value.trim();
+      const output = document.getElementById('yearResult');
+      for (const era of eras) {
+        if (input.startsWith(era.name)) {
+          const year = parseInt(input.replace(era.name, '').replace('年', ''), 10);
+          if (!isNaN(year)) {
+            output.innerText = `${era.name}${year}年 → 西暦 ${era.start + year - 1}年`;
+            return;
+          }
+        }
+      }
+      output.innerText = '※和暦の形式が正しくありません（例: 昭和45年）';
+    }
+
+    function convertToWareki() {
+      const input = parseInt(document.getElementById('seirekiInput').value, 10);
+      const output = document.getElementById('yearResult');
+      if (isNaN(input)) {
+        output.innerText = '';
+        return;
+      }
+      for (const era of eras) {
+        if (input >= era.start) {
+          output.innerText = `西暦 ${input}年 → ${era.name}${input - era.start + 1}年`;
+          return;
+        }
+      }
+      output.innerText = '※明治以前は対応していません';
+    }
+
+    // 三枚コイン占い
+    function throwCoins() {
+      const results = [];
+      const lines = [];
+      for (let i = 0; i < 6; i++) {
+        const toss = [flipCoin(), flipCoin(), flipCoin()];
+        const total = toss.reduce((a, b) => a + b, 0);
+        results.push(`第${6 - i}爻: ${toss.map(v => v === 3 ? '表' : '裏').join('＋')} → ${total === 9 ? '老陽（○）' : total === 8 ? '少陰（－－）' : total === 7 ? '少陽（○）' : '老陰（×）'}`);
+        lines.unshift(total);
+      }
+      document.getElementById("coinResult").innerHTML = results.join('<br>');
+    }
+
+    function flipCoin() {
+      return Math.random() < 0.5 ? 2 : 3; // 裏:2 表:3
+    }
+  </script>
+</body>
+</html>
